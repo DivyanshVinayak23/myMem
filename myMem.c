@@ -30,13 +30,24 @@ header_t *head = NULL, *tail = NULL;
 // Mutex for thread-safe operations
 pthread_mutex_t global_malloc_lock;
 
+
 // Function to find a free memory block of at least 'size' bytes
 header_t *get_free_block(size_t size) {
     header_t *curr = head;
+    size_t tempSize = __INT_MAX__;
     while (curr) {
         if (curr->s.is_free && curr->s.size >= size)
-            return curr;
+        {
+            if(tempSize > curr->s.size)
+                tempSize = curr->s.size;
+        }
         curr = curr->s.next;
+    }
+    header_t *curr1 = head;
+    while(curr1){
+        if(curr1->s.is_free && curr1->s.size == tempSize)
+            return curr1;
+        curr1 = curr1->s.next;
     }
     return NULL;
 }
@@ -173,6 +184,5 @@ void print_memory_statistics() {
     printf("Total Allocated: %zu bytes\n", total_allocated);
     printf("Total Freed: %zu bytes\n", total_freed);
     printf("Current Usage: %zu bytes\n", current_usage);
-    printf("Allocation Count: %zu\n", allocation_count);
     pthread_mutex_unlock(&global_malloc_lock);
 }
